@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scoreboard Badminton Online</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap');
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a1a;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+        }
+        .scoreboard-title {
+            font-family: 'Roboto', sans-serif;
+            font-size: 48px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 30px;
+        }
+        .team-inputs {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .team-inputs input {
+            padding: 10px;
+            font-size: 18px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 200px;
+            text-align: center;
+        }
+        .team-inputs button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            background-color: #1e3a8a;
+            color: #ffffff;
+            border: none;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        .team-inputs button:hover {
+            background-color: #ffd700;
+            color: #1a1a1a;
+        }
+        .scoreboard {
+            background-color: #0d1b2a;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            text-align: center;
+            width: 80%;
+            max-width: 800px;
+            display: none; /* Hide until names are set */
+        }
+        .team {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .team-name {
+            font-size: 32px;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .score {
+            font-size: 96px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: #ffffff;
+        }
+        .control {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+        .control-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        button {
+            background-color: #1e3a8a;
+            color: #ffffff;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #ffd700;
+            color: #1a1a1a;
+        }
+        .set-info {
+            font-size: 24px;
+            margin-top: 30px;
+            color: #ffd700;
+        }
+        .serve-indicator {
+            width: 30px;
+            height: 30px;
+            background-color: #ffd700;
+            border-radius: 50%;
+            display: inline-block;
+            margin-left: 15px;
+        }
+        .match-info {
+            font-size: 20px;
+            margin-top: 20px;
+            color: #ffffff;
+        }
+        .winner-display {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ffd700;
+            margin-top: 30px;
+            display: none;
+        }
+        .set-history {
+            font-size: 18px;
+            margin-top: 20px;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="scoreboard-title">Badminton Scoreboard Online</div>
+
+    <!-- Input untuk nama tim -->
+    <div class="team-inputs">
+        <input type="text" id="teamAInput" placeholder="Masukkan nama Tim A" required>
+        <input type="text" id="teamBInput" placeholder="Masukkan nama Tim B" required>
+        <button onclick="setTeamNames()">Mulai Permainan</button>
+    </div>
+
+    <!-- Scoreboard -->
+    <div class="scoreboard" id="scoreboard">
+        <div class="team">
+            <div>
+                <span class="team-name" id="teamAName">Tim A</span>
+                <span class="serve-indicator" id="serveA"></span>
+            </div>
+            <div>
+                <span class="team-name" id="teamBName">Tim B</span>
+                <span class="serve-indicator" id="serveB"></span>
+            </div>
+        </div>
+        <div class="team">
+            <div class="score" id="scoreA">0</div>
+            <div class="score" id="scoreB">0</div>
+        </div>
+        <div class="control">
+            <div class="control-column">
+                <button onclick="addScore('A')">+1 Tim A</button>
+                <button onclick="subtractScore('A')">-1 Tim A</button>
+            </div>
+            <div class="control-column">
+                <button onclick="addScore('B')">+1 Tim B</button>
+                <button onclick="subtractScore('B')">-1 Tim B</button>
+            </div>
+        </div>
+        <div class="set-info">
+            Set: <span id="currentSet">1</span>
+        </div>
+        <div class="match-info">
+            Skor set: <span id="setScoreA">0</span> - <span id="setScoreB">0</span>
+        </div>
+        <div class="set-history" id="setHistory"></div>
+        <button onclick="resetScore()">Reset Skor</button>
+        <div class="winner-display" id="winnerDisplay"></div>
+    </div>
+
+    <script>
+        let scoreA = 0;
+        let scoreB = 0;
+        let currentSet = 1;
+        let serveA = true;
+        let setScoreA = 0;
+        let setScoreB = 0;
+        let setHistory = [];
+
+        function setTeamNames() {
+            const teamAName = document.getElementById('teamAInput').value;
+            const teamBName = document.getElementById('teamBInput').value;
+
+            if (teamAName && teamBName) {
+                document.getElementById('teamAName').textContent = teamAName;
+                document.getElementById('teamBName').textContent = teamBName;
+                document.getElementById('scoreboard').style.display = 'block';  // Show scoreboard
+                document.querySelector('.team-inputs').style.display = 'none';  // Hide team inputs
+            } else {
+                alert('Nama kedua tim harus diisi!');
+            }
+        }
+
+        function updateScore() {
+            document.getElementById('scoreA').textContent = scoreA;
+            document.getElementById('scoreB').textContent = scoreB;
+            document.getElementById('currentSet').textContent = currentSet;
+            document.getElementById('setScoreA').textContent = setScoreA;
+            document.getElementById('setScoreB').textContent = setScoreB;
+            document.getElementById('serveA').style.display = serveA ? 'inline-block' : 'none';
+            document.getElementById('serveB').style.display = serveA ? 'none' : 'inline-block';
+            updateSetHistory();
+        }
+
+        function addScore(team) {
+            if (team === 'A') {
+                scoreA++;
+            } else {
+                scoreB++;
+            }
+            checkServe();
+            checkSetWin();
+            updateScore();
+        }
+
+        function subtractScore(team) {
+            if (team === 'A' && scoreA > 0) {
+                scoreA--;
+            } else if (team === 'B' && scoreB > 0) {
+                scoreB--;
+            }
+            checkServe();
+            updateScore();
+        }
+
+        function checkServe() {
+            if ((scoreA + scoreB) % 2 === 0) {
+                serveA = !serveA;
+            }
+        }
+
+        function checkSetWin() {
+            let setWinner = '';
+            if ((scoreA >= 21 || scoreB >= 21) && Math.abs(scoreA - scoreB) >= 2) {
+                setWinner = scoreA > scoreB ? 'A' : 'B';
+                if (setWinner === 'A') setScoreA++;
+                else setScoreB++;
+                
+                setHistory.push(`Set ${currentSet}: ${document.getElementById('teamAName').textContent} ${scoreA} - ${scoreB} ${document.getElementById('teamBName').textContent}`);
+                
+                alert(`Set ${currentSet} selesai! Pemenang set: ${document.getElementById('teamAName').textContent}`);
+                
+                if (setScoreA === 2 || setScoreB === 2) {
+                    endMatch(setWinner);
+                } else {
+                    currentSet++;
+                    scoreA = 0;
+                    scoreB = 0;
+                    serveA = !serveA;
+                }
+            }
+        }
+
+        function updateSetHistory() {
+            const historyElement = document.getElementById('setHistory');
+            historyElement.innerHTML = setHistory.join('<br>');
+        }
+
+        function endMatch(winner) {
+            document.getElementById('winnerDisplay').textContent = `${document.getElementById('teamAName').textContent} memenangkan pertandingan!`;
+            document.getElementById('winnerDisplay').style.display = 'block';
+            disableButtons();
+        }
+
+        function disableButtons() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                if (button.textContent !== 'Reset Skor') {
+                    button.disabled = true;
+                }
+            });
+        }
+
+        function resetScore() {
+            scoreA = 0;
+            scoreB = 0;
+            currentSet = 1;
+            serveA = true;
+            setScoreA = 0;
+            setScoreB = 0;
+            setHistory = [];
+            updateScore();
+            document.getElementById('winnerDisplay').style.display = 'none';
+            enableButtons();
+        }
+
+        function enableButtons() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.disabled = false;
+            });
+        }
+
+        updateScore();
+    </script>
+</body>
+</html>
