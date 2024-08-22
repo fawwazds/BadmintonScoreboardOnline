@@ -57,7 +57,7 @@
             background-color: #0d1b2a;
             border-radius: 15px;
             padding: 30px;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
+            box-shadow: none; /* Remove shadow */
             text-align: center;
             width: 80%;
             max-width: 800px;
@@ -109,14 +109,6 @@
             margin-top: 30px;
             color: #ffd700;
         }
-        .serve-indicator {
-            width: 30px;
-            height: 30px;
-            background-color: #ffd700;
-            border-radius: 50%;
-            display: inline-block;
-            margin-left: 15px;
-        }
         .match-info {
             font-size: 20px;
             margin-top: 20px;
@@ -151,11 +143,9 @@
         <div class="team">
             <div>
                 <span class="team-name" id="teamAName">Tim A</span>
-                <span class="serve-indicator" id="serveA"></span>
             </div>
             <div>
                 <span class="team-name" id="teamBName">Tim B</span>
-                <span class="serve-indicator" id="serveB"></span>
             </div>
         </div>
         <div class="team">
@@ -164,12 +154,12 @@
         </div>
         <div class="control">
             <div class="control-column">
-                <button onclick="addScore('A')">+1 Tim A</button>
-                <button onclick="subtractScore('A')">-1 Tim A</button>
+                <button onclick="TambahSkor('A')">+1 Tim A</button>
+                <button onclick="MinusSkor('A')">-1 Tim A</button>
             </div>
             <div class="control-column">
-                <button onclick="addScore('B')">+1 Tim B</button>
-                <button onclick="subtractScore('B')">-1 Tim B</button>
+                <button onclick="TambahSkor('B')">+1 Tim B</button>
+                <button onclick="MinusSkor('B')">-1 Tim B</button>
             </div>
         </div>
         <div class="set-info">
@@ -201,6 +191,7 @@
                 document.getElementById('teamBName').textContent = teamBName;
                 document.getElementById('scoreboard').style.display = 'block';  // Show scoreboard
                 document.querySelector('.team-inputs').style.display = 'none';  // Hide team inputs
+                alert(`Permainan dimulai! ${teamAName} vs ${teamBName}`);
             } else {
                 alert('Nama kedua tim harus diisi!');
             }
@@ -212,12 +203,10 @@
             document.getElementById('currentSet').textContent = currentSet;
             document.getElementById('setScoreA').textContent = setScoreA;
             document.getElementById('setScoreB').textContent = setScoreB;
-            document.getElementById('serveA').style.display = serveA ? 'inline-block' : 'none';
-            document.getElementById('serveB').style.display = serveA ? 'none' : 'inline-block';
             updateSetHistory();
         }
 
-        function addScore(team) {
+        function TambahSkor(team) {
             if (team === 'A') {
                 scoreA++;
             } else {
@@ -228,7 +217,7 @@
             updateScore();
         }
 
-        function subtractScore(team) {
+        function MinusSkor(team) {
             if (team === 'A' && scoreA > 0) {
                 scoreA--;
             } else if (team === 'B' && scoreB > 0) {
@@ -263,6 +252,19 @@
                     scoreB = 0;
                     serveA = !serveA;
                 }
+            }
+
+            // Handle max score 30 if match continues to be tied
+            if (scoreA === 30 || scoreB === 30) {
+                setWinner = scoreA === 30 ? 'A' : 'B';
+                if (setWinner === 'A') setScoreA++;
+                else setScoreB++;
+
+                setHistory.push(`Set ${currentSet}: ${document.getElementById('teamAName').textContent} ${scoreA} - ${scoreB} ${document.getElementById('teamBName').textContent}`);
+                
+                alert(`Set ${currentSet} selesai! Pemenang set: ${document.getElementById('teamAName').textContent}`);
+
+                endMatch(setWinner);
             }
         }
 
